@@ -168,7 +168,7 @@ def test_clean_text_can_disable_individual_rules():
         extra_spaces=True,
         blank_lines=False,
     )
-    assert clean_text(raw, config) == "Hello!!!\n\n\nWorld..."
+    assert clean_text(raw, config) == "Hello!!!\r\n\r\n\r\nWorld..."
 
 
 def test_clean_text_trims_whitespace_before_collapsing_blank_lines():
