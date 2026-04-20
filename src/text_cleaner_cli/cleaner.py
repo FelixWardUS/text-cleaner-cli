@@ -19,7 +19,7 @@ class CleanerConfig:
     typography: bool = True
     zero_width_chars: bool = True
     trailing_whitespace: bool = True
-    repeated_punctuation: bool = True
+    punctuation_mode: str = "loose"
     extra_spaces: bool = True
     blank_lines: bool = True
 
@@ -34,8 +34,7 @@ def clean_text(text: str, config: CleanerConfig) -> str:
         cleaned = normalize_unicode(cleaned, config.unicode_form)
     if config.typography:
         cleaned = normalize_typography(cleaned)
-    if config.repeated_punctuation:
-        cleaned = collapse_repeated_punctuation(cleaned)
+    cleaned = collapse_repeated_punctuation(cleaned, mode=config.punctuation_mode)
     if config.trailing_whitespace:
         cleaned = remove_trailing_whitespace(cleaned)
     if config.extra_spaces:

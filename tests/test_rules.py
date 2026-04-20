@@ -32,6 +32,23 @@ def test_collapse_repeated_punctuation_leaves_mixed_sequences_unchanged():
     assert collapse_repeated_punctuation("What?!?!") == "What?!?!"
 
 
+def test_collapse_repeated_punctuation_can_be_disabled():
+    assert collapse_repeated_punctuation("Hi!!! Wait.....", mode="off") == "Hi!!! Wait....."
+
+
+def test_collapse_repeated_punctuation_strict_reduces_mixed_question_exclamation_runs():
+    assert collapse_repeated_punctuation("What?!?! No!?!? Stop!!!", mode="strict") == "What?! No!? Stop!"
+
+
+def test_collapse_repeated_punctuation_rejects_unknown_mode():
+    try:
+        collapse_repeated_punctuation("Hi!!!", mode="unknown")
+    except ValueError as error:
+        assert str(error) == "Unsupported punctuation mode: unknown"
+    else:
+        raise AssertionError("Expected ValueError")
+
+
 def test_remove_extra_spaces_trims_lines_and_collapses_internal_whitespace():
     assert remove_extra_spaces("  hello   world  \n\ta\t\tb\t") == "hello world\na b"
 

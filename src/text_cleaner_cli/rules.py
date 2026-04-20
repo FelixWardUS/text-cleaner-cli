@@ -3,6 +3,7 @@ import unicodedata
 
 
 _REPEATED_PUNCTUATION_PATTERN = re.compile(r"([!?,.])\1+")
+_QUESTION_EXCLAMATION_RUN_PATTERN = re.compile(r"[!?]{2,}")
 _EXTRA_SPACES_PATTERN = re.compile(r"[ \t]+")
 _TRAILING_WHITESPACE_PATTERN = re.compile(r"[ \t]+(?=\n|$)")
 _BLANK_LINES_PATTERN = re.compile(r"\n{3,}")
@@ -47,8 +48,24 @@ def normalize_typography(text: str) -> str:
     return text.translate(_TYPOGRAPHY_TRANSLATION)
 
 
-def collapse_repeated_punctuation(text: str) -> str:
-    return _REPEATED_PUNCTUATION_PATTERN.sub(r"\1", text)
+def collapse_repeated_punctuation(text: str, mode: str = "loose") -> str:
+    if mode == "off":
+        return text
+    if mode not in {"loose", "strict"}:
+        raise ValueError(f"Unsupported punctuation mode: {mode}")
+
+    cleaned = _REPEATED_PUNCTUATION_PATTERN.sub(r"\1", text)
+    if mode == "strict":
+        cleaned = _QUESTION_EXCLAMATION_RUN_PATTERN.sub(_collapse_question_exclamation_run, cleaned)
+    return cleaned
+
+
+def _collapse_question_exclamation_run(match: re.Match[str]) -> str:
+    seen = []
+    for char in match.group(0):
+        if char not in seen:
+            seen.append(char)
+    return "".join(seen)
 
 
 def remove_extra_spaces(text: str) -> str:

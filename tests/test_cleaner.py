@@ -12,11 +12,15 @@ def test_clean_text_can_disable_individual_rules():
         normalize_line_endings=False,
         zero_width_chars=True,
         trailing_whitespace=True,
-        repeated_punctuation=False,
+        punctuation_mode="off",
         extra_spaces=True,
         blank_lines=False,
     )
     assert clean_text(raw, config) == "Hello!!!\r\n\r\n\r\nWorld..."
+
+
+def test_clean_text_uses_strict_punctuation_mode_when_requested():
+    assert clean_text("What?!?!", CleanerConfig(punctuation_mode="strict")) == "What?!"
 
 
 def test_clean_text_removes_zero_width_chars_and_trailing_whitespace_by_default():

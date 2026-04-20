@@ -33,7 +33,7 @@ def main(
     stderr = stderr or sys.stderr
     config = CleanerConfig(
         normalize_line_endings=not args.no_normalize_line_endings,
-        repeated_punctuation=not args.no_repeated_punctuation,
+        punctuation_mode="off" if args.no_repeated_punctuation else "loose",
         extra_spaces=not args.no_extra_spaces,
         blank_lines=not args.no_blank_lines,
     )
