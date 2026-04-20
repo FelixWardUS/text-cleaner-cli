@@ -5,11 +5,16 @@ A simple command-line tool to clean up messy text files and copied text snippets
 ## Features
 
 - Remove extra spaces
+- Remove trailing whitespace
+- Remove zero-width characters
 - Collapse repeated blank lines
 - Normalize line endings
-- Clean repeated punctuation
+- Normalize Unicode text
+- Normalize curly quotes, dashes, and ellipses
+- Clean repeated punctuation with loose or strict modes
+- Preserve Markdown fenced code blocks by default
 - Read from `stdin`, one file, or multiple files
-- Disable individual cleaning rules with `--no-*` flags
+- Disable or override individual cleaning rules with flags
 
 ## Installation
 
@@ -47,12 +52,37 @@ Disable individual rules:
 text-cleaner --no-repeated-punctuation --no-blank-lines input.txt
 ```
 
+Use a preset:
+
+```bash
+text-cleaner --preset aggressive input.txt
+```
+
+Clean Markdown code blocks too:
+
+```bash
+text-cleaner --clean-code-blocks README.md
+```
+
 ## Options
 
+- `--preset minimal|normal|aggressive`: choose a rule bundle. Default: `normal`
+- `--unicode-form none|NFC|NFD|NFKC|NFKD`: choose Unicode normalization. Default: `NFC`
+- `--punctuation-mode loose|strict|off`: choose repeated punctuation handling
 - `--no-normalize-line-endings`: keep original line endings
 - `--no-repeated-punctuation`: keep repeated `!`, `?`, `.`, and `,`
+- `--no-typography`: keep curly quotes, dashes, and ellipses unchanged
+- `--keep-zero-width-chars`: keep zero-width characters
+- `--keep-trailing-whitespace`: keep trailing spaces and tabs
+- `--clean-code-blocks`: apply rules inside Markdown fenced code blocks
 - `--no-extra-spaces`: keep repeated spaces and tabs
 - `--no-blank-lines`: keep repeated blank lines
+
+Presets:
+
+- `minimal`: safe cleanup only; keeps repeated punctuation, typography, and internal spacing
+- `normal`: default cleanup; normalizes Unicode, typography, spaces, blank lines, and loose punctuation
+- `aggressive`: uses `NFKC` Unicode normalization and strict punctuation mode
 
 ## Output
 

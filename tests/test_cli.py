@@ -57,6 +57,83 @@ def test_main_respects_no_flags_for_individual_rules():
     assert stdout.getvalue() == "Hello!!!\n\n\nWorld...\n"
 
 
+def test_main_supports_strict_punctuation_mode():
+    stdin = StringIO("What?!?!\n")
+    stdout = StringIO()
+    stderr = StringIO()
+
+    exit_code = main(["--punctuation-mode", "strict"], stdin=stdin, stdout=stdout, stderr=stderr)
+
+    assert exit_code == 0
+    assert stdout.getvalue() == "What?!\n"
+    assert stderr.getvalue() == ""
+
+
+def test_main_supports_aggressive_preset():
+    stdin = StringIO("\uff21\u2014What?!?!\n")
+    stdout = StringIO()
+    stderr = StringIO()
+
+    exit_code = main(["--preset", "aggressive"], stdin=stdin, stdout=stdout, stderr=stderr)
+
+    assert exit_code == 0
+    assert stdout.getvalue() == "A-What?!\n"
+    assert stderr.getvalue() == ""
+
+
+def test_main_supports_minimal_preset():
+    stdin = StringIO("  Hi!!!   there\u2014  \n\n\n")
+    stdout = StringIO()
+    stderr = StringIO()
+
+    exit_code = main(["--preset", "minimal"], stdin=stdin, stdout=stdout, stderr=stderr)
+
+    assert exit_code == 0
+    assert stdout.getvalue() == "  Hi!!!   there\u2014\n\n"
+    assert stderr.getvalue() == ""
+
+
+def test_main_supports_unicode_form_override():
+    stdin = StringIO("\uff21\uff22\uff23\n")
+    stdout = StringIO()
+    stderr = StringIO()
+
+    exit_code = main(["--unicode-form", "NFKC"], stdin=stdin, stdout=stdout, stderr=stderr)
+
+    assert exit_code == 0
+    assert stdout.getvalue() == "ABC\n"
+    assert stderr.getvalue() == ""
+
+
+def test_main_can_keep_zero_width_chars_and_trailing_whitespace():
+    stdin = StringIO("a\u200b  \n")
+    stdout = StringIO()
+    stderr = StringIO()
+
+    exit_code = main(
+        ["--keep-zero-width-chars", "--keep-trailing-whitespace", "--no-extra-spaces"],
+        stdin=stdin,
+        stdout=stdout,
+        stderr=stderr,
+    )
+
+    assert exit_code == 0
+    assert stdout.getvalue() == "a\u200b  \n"
+    assert stderr.getvalue() == ""
+
+
+def test_main_can_clean_markdown_code_blocks_when_requested():
+    stdin = StringIO("```python\nvalue   =   \"x!!!\"\u200b  \n```\n")
+    stdout = StringIO()
+    stderr = StringIO()
+
+    exit_code = main(["--clean-code-blocks"], stdin=stdin, stdout=stdout, stderr=stderr)
+
+    assert exit_code == 0
+    assert stdout.getvalue() == "```python\nvalue = \"x!\"\n```\n"
+    assert stderr.getvalue() == ""
+
+
 def test_main_returns_error_when_no_input_is_available():
     stdin = StringIO("")
     stdin.isatty = lambda: True
