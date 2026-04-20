@@ -124,23 +124,42 @@ def _process_files(
 ) -> int:
     files = _filter_files(_expand_input_paths(paths), include_patterns, exclude_patterns)
     multiple = len(files) > 1
-    for index, path in enumerate(files):
+    succeeded = 0
+    failed = 0
+    changed = 0
+    written_blocks = 0
+
+    for path in files:
         try:
-            cleaned = clean_text(path.read_text(encoding="utf-8"), config)
+            raw_text = path.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             stderr.write(f"Failed to read file: {path}\n")
-            return 1
+            failed += 1
+            if not multiple:
+                return 1
+            continue
+
+        cleaned = clean_text(raw_text, config)
+        succeeded += 1
+        if cleaned != raw_text:
+            changed += 1
 
         if multiple:
-            if index > 0:
+            if written_blocks > 0:
                 stdout.write("\n")
             stdout.write(f"==> {path.name} <==\n")
             stdout.write(cleaned)
             if not cleaned.endswith("\n"):
                 stdout.write("\n")
+            written_blocks += 1
         else:
             stdout.write(cleaned)
-    return 0
+
+    if multiple:
+        stderr.write(
+            f"Processed {len(files)} files: {succeeded} succeeded, {failed} failed, {changed} changed.\n"
+        )
+    return 1 if failed else 0
 
 
 def _expand_input_paths(paths: Sequence[str]) -> list[Path]:

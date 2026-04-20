@@ -43,7 +43,7 @@ def test_main_reads_multiple_files_with_headers(tmp_path: Path):
 
     assert exit_code == 0
     assert stdout.getvalue() == "==> first.txt <==\nHi!\n\n==> second.txt <==\nBye.\n"
-    assert stderr.getvalue() == ""
+    assert stderr.getvalue() == "Processed 2 files: 2 succeeded, 0 failed, 2 changed.\n"
 
 
 def test_main_reads_directory_recursively_with_headers(tmp_path: Path):
@@ -62,7 +62,7 @@ def test_main_reads_directory_recursively_with_headers(tmp_path: Path):
 
     assert exit_code == 0
     assert stdout.getvalue() == "==> first.txt <==\nHi!\n\n==> second.txt <==\nBye.\n"
-    assert stderr.getvalue() == ""
+    assert stderr.getvalue() == "Processed 2 files: 2 succeeded, 0 failed, 2 changed.\n"
 
 
 def test_main_expands_glob_paths(tmp_path: Path, monkeypatch):
@@ -84,7 +84,7 @@ def test_main_expands_glob_paths(tmp_path: Path, monkeypatch):
 
     assert exit_code == 0
     assert stdout.getvalue() == "==> first.md <==\nHi!\n\n==> second.md <==\nBye.\n"
-    assert stderr.getvalue() == ""
+    assert stderr.getvalue() == "Processed 2 files: 2 succeeded, 0 failed, 2 changed.\n"
 
 
 def test_main_filters_expanded_paths_with_include_and_exclude(tmp_path: Path, monkeypatch):
@@ -224,3 +224,20 @@ def test_main_reports_unreadable_file(tmp_path: Path):
     assert exit_code == 1
     assert stdout.getvalue() == ""
     assert stderr.getvalue() == f"Failed to read file: {missing}\n"
+
+
+def test_main_continues_batch_after_unreadable_file(tmp_path: Path):
+    missing = tmp_path / "missing.txt"
+    sample = tmp_path / "sample.txt"
+    sample.write_text("Hi!!!\n", encoding="utf-8")
+    stdout = StringIO()
+    stderr = StringIO()
+
+    exit_code = main([str(missing), str(sample)], stdout=stdout, stderr=stderr)
+
+    assert exit_code == 1
+    assert stdout.getvalue() == "==> sample.txt <==\nHi!\n"
+    assert stderr.getvalue() == (
+        f"Failed to read file: {missing}\n"
+        "Processed 2 files: 1 succeeded, 1 failed, 1 changed.\n"
+    )
