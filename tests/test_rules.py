@@ -1,6 +1,8 @@
 from text_cleaner_cli.rules import (
     collapse_blank_lines,
     collapse_repeated_punctuation,
+    normalize_typography,
+    normalize_unicode,
     normalize_line_endings,
     remove_trailing_whitespace,
     remove_extra_spaces,
@@ -10,6 +12,16 @@ from text_cleaner_cli.rules import (
 
 def test_normalize_line_endings_converts_windows_and_classic_mac():
     assert normalize_line_endings("a\r\nb\rc") == "a\nb\nc"
+
+
+def test_normalize_unicode_applies_requested_form():
+    assert normalize_unicode("Cafe\u0301", "NFC") == "Caf\u00e9"
+    assert normalize_unicode("\uff21\uff22\uff23", "NFKC") == "ABC"
+
+
+def test_normalize_typography_converts_common_marks_to_ascii():
+    raw = "\u201cHello\u201d \u2014 \u2018world\u2019\u2026"
+    assert normalize_typography(raw) == "\"Hello\" - 'world'..."
 
 
 def test_collapse_repeated_punctuation_reduces_supported_characters():

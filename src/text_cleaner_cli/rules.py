@@ -1,4 +1,5 @@
 import re
+import unicodedata
 
 
 _REPEATED_PUNCTUATION_PATTERN = re.compile(r"([!?,.])\1+")
@@ -6,10 +7,44 @@ _EXTRA_SPACES_PATTERN = re.compile(r"[ \t]+")
 _TRAILING_WHITESPACE_PATTERN = re.compile(r"[ \t]+(?=\n|$)")
 _BLANK_LINES_PATTERN = re.compile(r"\n{3,}")
 _ZERO_WIDTH_CHARS_PATTERN = re.compile("[\u200b\u200c\u200d\ufeff\u2060]")
+_TYPOGRAPHY_TRANSLATION = str.maketrans(
+    {
+        "\u2018": "'",
+        "\u2019": "'",
+        "\u201a": "'",
+        "\u201b": "'",
+        "\u2039": "'",
+        "\u203a": "'",
+        "\u201c": '"',
+        "\u201d": '"',
+        "\u201e": '"',
+        "\u201f": '"',
+        "\u00ab": '"',
+        "\u00bb": '"',
+        "\u2010": "-",
+        "\u2011": "-",
+        "\u2012": "-",
+        "\u2013": "-",
+        "\u2014": "-",
+        "\u2015": "-",
+        "\u2212": "-",
+        "\u2026": "...",
+    }
+)
 
 
 def normalize_line_endings(text: str) -> str:
     return text.replace("\r\n", "\n").replace("\r", "\n")
+
+
+def normalize_unicode(text: str, form: str | None) -> str:
+    if form is None:
+        return text
+    return unicodedata.normalize(form, text)
+
+
+def normalize_typography(text: str) -> str:
+    return text.translate(_TYPOGRAPHY_TRANSLATION)
 
 
 def collapse_repeated_punctuation(text: str) -> str:

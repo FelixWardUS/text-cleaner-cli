@@ -24,6 +24,11 @@ def test_clean_text_removes_zero_width_chars_and_trailing_whitespace_by_default(
     assert clean_text(raw, CleanerConfig(extra_spaces=False)) == "alpha\nbeta\n"
 
 
+def test_clean_text_normalizes_unicode_and_typography_by_default():
+    raw = "\u201cCafe\u0301\u201d\u2026"
+    assert clean_text(raw, CleanerConfig()) == "\"Caf\u00e9\"."
+
+
 def test_clean_text_trims_whitespace_before_collapsing_blank_lines():
     raw = "one\n   \n\t \nthree"
     assert clean_text(raw, CleanerConfig()) == "one\n\nthree"
