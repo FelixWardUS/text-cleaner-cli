@@ -13,7 +13,9 @@ A simple command-line tool to clean up messy text files and copied text snippets
 - Normalize curly quotes, dashes, and ellipses
 - Clean repeated punctuation with loose or strict modes
 - Preserve Markdown fenced code blocks by default
-- Read from `stdin`, one file, or multiple files
+- Read from `stdin`, files, directories, or glob patterns
+- Filter batch inputs with `--include` and `--exclude`
+- Summarize multi-file batches with success, failure, and changed counts
 - Disable or override individual cleaning rules with flags
 
 ## Installation
@@ -38,6 +40,24 @@ Clean multiple files:
 
 ```bash
 text-cleaner file1.txt file2.txt
+```
+
+Clean every file under a directory:
+
+```bash
+text-cleaner docs/
+```
+
+Clean files matched by a quoted glob:
+
+```bash
+text-cleaner "docs/**/*.md"
+```
+
+Filter a batch:
+
+```bash
+text-cleaner docs/ --include "*.md" --exclude "docs/drafts/*"
 ```
 
 Clean text from a pipe:
@@ -75,6 +95,8 @@ text-cleaner --clean-code-blocks README.md
 - `--keep-zero-width-chars`: keep zero-width characters
 - `--keep-trailing-whitespace`: keep trailing spaces and tabs
 - `--clean-code-blocks`: apply rules inside Markdown fenced code blocks
+- `--include PATTERN`: include files matching a shell-style pattern. Can be repeated
+- `--exclude PATTERN`: exclude files matching a shell-style pattern. Can be repeated
 - `--no-extra-spaces`: keep repeated spaces and tabs
 - `--no-blank-lines`: keep repeated blank lines
 
@@ -96,6 +118,12 @@ cleaned content...
 
 ==> file2.txt <==
 cleaned content...
+```
+
+Multi-file batches also write a summary to `stderr`:
+
+```text
+Processed 2 files: 2 succeeded, 0 failed, 2 changed.
 ```
 
 The CLI does not modify files in place.

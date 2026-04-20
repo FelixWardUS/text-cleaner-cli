@@ -41,27 +41,42 @@ PRESET_CONFIGS = {
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="text-cleaner")
-    parser.add_argument("paths", nargs="*")
-    parser.add_argument("--preset", choices=tuple(PRESET_CONFIGS), default="normal")
-    parser.add_argument("--unicode-form", choices=("none", "NFC", "NFD", "NFKC", "NFKD"))
+    parser = argparse.ArgumentParser(
+        prog="text-cleaner",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=(
+            "Clean text from stdin or files; read directories recursively and expand quoted glob patterns."
+        ),
+    )
+    parser.add_argument("paths", nargs="*", help="files, directories, or glob patterns")
+    parser.add_argument("--preset", choices=tuple(PRESET_CONFIGS), default="normal", help="rule preset")
+    parser.add_argument(
+        "--unicode-form",
+        choices=("none", "NFC", "NFD", "NFKC", "NFKD"),
+        help="Unicode normalization form",
+    )
     punctuation_group = parser.add_mutually_exclusive_group()
-    punctuation_group.add_argument("--punctuation-mode", choices=("loose", "strict", "off"))
+    punctuation_group.add_argument(
+        "--punctuation-mode",
+        choices=("loose", "strict", "off"),
+        help="repeated punctuation cleanup mode",
+    )
     punctuation_group.add_argument(
         "--no-repeated-punctuation",
         dest="punctuation_mode",
         action="store_const",
         const="off",
+        help="disable repeated punctuation cleanup",
     )
-    parser.add_argument("--no-normalize-line-endings", action="store_true")
-    parser.add_argument("--no-typography", action="store_true")
-    parser.add_argument("--keep-zero-width-chars", action="store_true")
-    parser.add_argument("--keep-trailing-whitespace", action="store_true")
-    parser.add_argument("--clean-code-blocks", action="store_true")
-    parser.add_argument("--include", action="append", default=[])
-    parser.add_argument("--exclude", action="append", default=[])
-    parser.add_argument("--no-extra-spaces", action="store_true")
-    parser.add_argument("--no-blank-lines", action="store_true")
+    parser.add_argument("--no-normalize-line-endings", action="store_true", help="keep original line endings")
+    parser.add_argument("--no-typography", action="store_true", help="keep typography characters unchanged")
+    parser.add_argument("--keep-zero-width-chars", action="store_true", help="keep zero-width characters")
+    parser.add_argument("--keep-trailing-whitespace", action="store_true", help="keep trailing spaces and tabs")
+    parser.add_argument("--clean-code-blocks", action="store_true", help="apply rules inside Markdown code blocks")
+    parser.add_argument("--include", action="append", default=[], help="include files matching a shell pattern")
+    parser.add_argument("--exclude", action="append", default=[], help="exclude files matching a shell pattern")
+    parser.add_argument("--no-extra-spaces", action="store_true", help="keep repeated spaces and tabs")
+    parser.add_argument("--no-blank-lines", action="store_true", help="keep repeated blank lines")
     return parser
 
 

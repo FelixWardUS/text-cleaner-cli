@@ -1,7 +1,16 @@
 from io import StringIO
 from pathlib import Path
 
-from text_cleaner_cli.cli import main
+from text_cleaner_cli.cli import build_parser, main
+
+
+def test_help_describes_batch_options():
+    help_text = build_parser().format_help()
+
+    assert "read directories recursively" in help_text
+    assert "expand quoted glob patterns" in help_text
+    assert "include files matching a shell pattern" in help_text
+    assert "exclude files matching a shell pattern" in help_text
 
 
 def test_main_reads_stdin_when_no_paths_are_given():
