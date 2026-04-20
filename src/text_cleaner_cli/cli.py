@@ -1,4 +1,5 @@
 import argparse
+import fnmatch
 import sys
 from glob import glob, has_magic
 from pathlib import Path
@@ -57,6 +58,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--keep-zero-width-chars", action="store_true")
     parser.add_argument("--keep-trailing-whitespace", action="store_true")
     parser.add_argument("--clean-code-blocks", action="store_true")
+    parser.add_argument("--include", action="append", default=[])
+    parser.add_argument("--exclude", action="append", default=[])
     parser.add_argument("--no-extra-spaces", action="store_true")
     parser.add_argument("--no-blank-lines", action="store_true")
     return parser
@@ -77,7 +80,7 @@ def main(
     config = _build_config(args)
 
     if args.paths:
-        return _process_files(args.paths, config, stdout, stderr)
+        return _process_files(args.paths, config, stdout, stderr, args.include, args.exclude)
 
     if stdin.isatty():
         stderr.write(f"{NO_INPUT_MESSAGE}\n")
@@ -111,8 +114,15 @@ def _build_config(args: argparse.Namespace) -> CleanerConfig:
     )
 
 
-def _process_files(paths: Sequence[str], config: CleanerConfig, stdout: TextIO, stderr: TextIO) -> int:
-    files = _expand_input_paths(paths)
+def _process_files(
+    paths: Sequence[str],
+    config: CleanerConfig,
+    stdout: TextIO,
+    stderr: TextIO,
+    include_patterns: Sequence[str],
+    exclude_patterns: Sequence[str],
+) -> int:
+    files = _filter_files(_expand_input_paths(paths), include_patterns, exclude_patterns)
     multiple = len(files) > 1
     for index, path in enumerate(files):
         try:
@@ -151,3 +161,34 @@ def _expand_path(path: Path) -> list[Path]:
     if path.is_dir():
         return sorted(item for item in path.rglob("*") if item.is_file())
     return [path]
+
+
+def _filter_files(
+    files: Sequence[Path],
+    include_patterns: Sequence[str],
+    exclude_patterns: Sequence[str],
+) -> list[Path]:
+    return [
+        path
+        for path in files
+        if _matches_include(path, include_patterns) and not _matches_any_pattern(path, exclude_patterns)
+    ]
+
+
+def _matches_include(path: Path, include_patterns: Sequence[str]) -> bool:
+    if not include_patterns:
+        return True
+    return _matches_any_pattern(path, include_patterns)
+
+
+def _matches_any_pattern(path: Path, patterns: Sequence[str]) -> bool:
+    return any(_matches_pattern(path, pattern) for pattern in patterns)
+
+
+def _matches_pattern(path: Path, pattern: str) -> bool:
+    candidates = [path.name, path.as_posix()]
+    try:
+        candidates.append(path.resolve().relative_to(Path.cwd().resolve()).as_posix())
+    except ValueError:
+        pass
+    return any(fnmatch.fnmatch(candidate, pattern) for candidate in candidates)

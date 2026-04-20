@@ -87,6 +87,32 @@ def test_main_expands_glob_paths(tmp_path: Path, monkeypatch):
     assert stderr.getvalue() == ""
 
 
+def test_main_filters_expanded_paths_with_include_and_exclude(tmp_path: Path, monkeypatch):
+    docs = tmp_path / "docs"
+    nested = docs / "nested"
+    nested.mkdir(parents=True)
+    keep = docs / "keep.md"
+    excluded = nested / "excluded.md"
+    ignored = docs / "ignored.txt"
+    keep.write_text("Keep!!!", encoding="utf-8")
+    excluded.write_text("Excluded!!!", encoding="utf-8")
+    ignored.write_text("Ignored!!!", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+
+    stdout = StringIO()
+    stderr = StringIO()
+
+    exit_code = main(
+        [str(docs), "--include", "*.md", "--exclude", "docs/nested/*"],
+        stdout=stdout,
+        stderr=stderr,
+    )
+
+    assert exit_code == 0
+    assert stdout.getvalue() == "Keep!"
+    assert stderr.getvalue() == ""
+
+
 def test_main_respects_no_flags_for_individual_rules():
     stdin = StringIO("  Hello!!!\n\n\nWorld...\n")
     stdout = StringIO()
