@@ -2,7 +2,9 @@ from text_cleaner_cli.rules import (
     collapse_blank_lines,
     collapse_repeated_punctuation,
     normalize_line_endings,
+    remove_trailing_whitespace,
     remove_extra_spaces,
+    remove_zero_width_chars,
 )
 
 
@@ -20,6 +22,15 @@ def test_collapse_repeated_punctuation_leaves_mixed_sequences_unchanged():
 
 def test_remove_extra_spaces_trims_lines_and_collapses_internal_whitespace():
     assert remove_extra_spaces("  hello   world  \n\ta\t\tb\t") == "hello world\na b"
+
+
+def test_remove_trailing_whitespace_preserves_leading_indentation():
+    assert remove_trailing_whitespace("  indented  \n\tkept\t\nplain") == "  indented\n\tkept\nplain"
+
+
+def test_remove_zero_width_chars_removes_common_invisible_codepoints():
+    raw = "a\u200bb\u200cc\u200dd\ufeffe\u2060f"
+    assert remove_zero_width_chars(raw) == "abcdef"
 
 
 def test_collapse_blank_lines_reduces_runs_to_single_blank_line():

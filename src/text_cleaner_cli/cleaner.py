@@ -4,13 +4,17 @@ from text_cleaner_cli.rules import (
     collapse_blank_lines,
     collapse_repeated_punctuation,
     normalize_line_endings,
+    remove_trailing_whitespace,
     remove_extra_spaces,
+    remove_zero_width_chars,
 )
 
 
 @dataclass(slots=True)
 class CleanerConfig:
     normalize_line_endings: bool = True
+    zero_width_chars: bool = True
+    trailing_whitespace: bool = True
     repeated_punctuation: bool = True
     extra_spaces: bool = True
     blank_lines: bool = True
@@ -20,8 +24,12 @@ def clean_text(text: str, config: CleanerConfig) -> str:
     cleaned = text
     if config.normalize_line_endings:
         cleaned = normalize_line_endings(cleaned)
+    if config.zero_width_chars:
+        cleaned = remove_zero_width_chars(cleaned)
     if config.repeated_punctuation:
         cleaned = collapse_repeated_punctuation(cleaned)
+    if config.trailing_whitespace:
+        cleaned = remove_trailing_whitespace(cleaned)
     if config.extra_spaces:
         cleaned = remove_extra_spaces(cleaned)
     if config.blank_lines:
