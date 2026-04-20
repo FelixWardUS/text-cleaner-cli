@@ -1,5 +1,6 @@
 import argparse
 import sys
+from glob import glob, has_magic
 from pathlib import Path
 from typing import Sequence, TextIO
 
@@ -135,9 +136,18 @@ def _process_files(paths: Sequence[str], config: CleanerConfig, stdout: TextIO, 
 def _expand_input_paths(paths: Sequence[str]) -> list[Path]:
     files = []
     for raw_path in paths:
-        path = Path(raw_path)
-        if path.is_dir():
-            files.extend(sorted(item for item in path.rglob("*") if item.is_file()))
+        if has_magic(raw_path):
+            expanded_paths = [Path(match) for match in sorted(glob(raw_path, recursive=True))]
         else:
-            files.append(path)
+            expanded_paths = []
+        if not expanded_paths:
+            expanded_paths = [Path(raw_path)]
+        for path in expanded_paths:
+            files.extend(_expand_path(path))
     return files
+
+
+def _expand_path(path: Path) -> list[Path]:
+    if path.is_dir():
+        return sorted(item for item in path.rglob("*") if item.is_file())
+    return [path]

@@ -65,6 +65,28 @@ def test_main_reads_directory_recursively_with_headers(tmp_path: Path):
     assert stderr.getvalue() == ""
 
 
+def test_main_expands_glob_paths(tmp_path: Path, monkeypatch):
+    docs = tmp_path / "docs"
+    nested = docs / "nested"
+    nested.mkdir(parents=True)
+    first = docs / "first.md"
+    second = nested / "second.md"
+    ignored = docs / "ignored.txt"
+    first.write_text("Hi!!!", encoding="utf-8")
+    second.write_text("Bye...\n", encoding="utf-8")
+    ignored.write_text("Skip!!!", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+
+    stdout = StringIO()
+    stderr = StringIO()
+
+    exit_code = main(["docs/**/*.md"], stdout=stdout, stderr=stderr)
+
+    assert exit_code == 0
+    assert stdout.getvalue() == "==> first.md <==\nHi!\n\n==> second.md <==\nBye.\n"
+    assert stderr.getvalue() == ""
+
+
 def test_main_respects_no_flags_for_individual_rules():
     stdin = StringIO("  Hello!!!\n\n\nWorld...\n")
     stdout = StringIO()
