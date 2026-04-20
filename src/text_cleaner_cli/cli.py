@@ -111,13 +111,13 @@ def _build_config(args: argparse.Namespace) -> CleanerConfig:
 
 
 def _process_files(paths: Sequence[str], config: CleanerConfig, stdout: TextIO, stderr: TextIO) -> int:
-    multiple = len(paths) > 1
-    for index, raw_path in enumerate(paths):
-        path = Path(raw_path)
+    files = _expand_input_paths(paths)
+    multiple = len(files) > 1
+    for index, path in enumerate(files):
         try:
             cleaned = clean_text(path.read_text(encoding="utf-8"), config)
         except (OSError, UnicodeDecodeError):
-            stderr.write(f"Failed to read file: {raw_path}\n")
+            stderr.write(f"Failed to read file: {path}\n")
             return 1
 
         if multiple:
@@ -130,3 +130,14 @@ def _process_files(paths: Sequence[str], config: CleanerConfig, stdout: TextIO, 
         else:
             stdout.write(cleaned)
     return 0
+
+
+def _expand_input_paths(paths: Sequence[str]) -> list[Path]:
+    files = []
+    for raw_path in paths:
+        path = Path(raw_path)
+        if path.is_dir():
+            files.extend(sorted(item for item in path.rglob("*") if item.is_file()))
+        else:
+            files.append(path)
+    return files

@@ -46,6 +46,25 @@ def test_main_reads_multiple_files_with_headers(tmp_path: Path):
     assert stderr.getvalue() == ""
 
 
+def test_main_reads_directory_recursively_with_headers(tmp_path: Path):
+    docs = tmp_path / "docs"
+    nested = docs / "nested"
+    nested.mkdir(parents=True)
+    first = docs / "first.txt"
+    second = nested / "second.txt"
+    first.write_text("Hi!!!", encoding="utf-8")
+    second.write_text("Bye...\n", encoding="utf-8")
+
+    stdout = StringIO()
+    stderr = StringIO()
+
+    exit_code = main([str(docs)], stdout=stdout, stderr=stderr)
+
+    assert exit_code == 0
+    assert stdout.getvalue() == "==> first.txt <==\nHi!\n\n==> second.txt <==\nBye.\n"
+    assert stderr.getvalue() == ""
+
+
 def test_main_respects_no_flags_for_individual_rules():
     stdin = StringIO("  Hello!!!\n\n\nWorld...\n")
     stdout = StringIO()
